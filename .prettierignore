@@ -1,0 +1,10 @@
+.temp/
+dist/
+node_modules/
+pnpm-lock.yaml
+src-tauri/gen/
+src-tauri/icons/
+src-tauri/images/*.png
+src-tauri/target/
+assets/*.png
+src/assets/*.png

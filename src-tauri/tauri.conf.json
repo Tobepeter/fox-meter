@@ -1,0 +1,77 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "FoxMeter",
+  "mainBinaryName": "fox-meter",
+  "version": "0.1.0",
+  "identifier": "com.tobe.fox-meter",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "FoxMeter",
+        "width": 320,
+        "height": 184,
+        "minWidth": 320,
+        "minHeight": 184,
+        "center": true,
+        "resizable": false,
+        "fullscreen": false,
+        "alwaysOnTop": true,
+        "visibleOnAllWorkspaces": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "acceptFirstMouse": true,
+        "transparent": true,
+        "backgroundColor": "#00000000"
+      }
+    ],
+    "macOSPrivateApi": true,
+    "security": {
+      "csp": {
+        "default-src": "'self'",
+        "connect-src": "ipc: http://ipc.localhost",
+        "img-src": "'self' data:",
+        "style-src": "'self' 'unsafe-inline'"
+      },
+      "devCsp": {
+        "default-src": "'self'",
+        "connect-src": "ipc: http://ipc.localhost http://localhost:1420 ws://localhost:1420 ws://localhost:1421 http://127.0.0.1:1420 ws://127.0.0.1:1420 ws://127.0.0.1:1421",
+        "img-src": "'self' data: blob:",
+        "style-src": "'self' 'unsafe-inline'"
+      }
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "macOS": {
+      "dmg": {
+        "background": "images/dmg-background.png",
+        "windowSize": {
+          "width": 660,
+          "height": 400
+        },
+        "appPosition": {
+          "x": 180,
+          "y": 185
+        },
+        "applicationFolderPosition": {
+          "x": 480,
+          "y": 185
+        }
+      }
+    }
+  }
+}

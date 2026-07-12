@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="660" height="400" viewBox="0 0 660 400">
+  <defs>
+    <radialGradient id="glow-left" cx="0" cy="0" r="1" gradientTransform="translate(112 64) rotate(31) scale(270 210)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#DCD7FF" stop-opacity="0.68" />
+      <stop offset="1" stop-color="#DCD7FF" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="glow-right" cx="0" cy="0" r="1" gradientTransform="translate(610 380) rotate(-143) scale(300 220)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D9E7FF" stop-opacity="0.62" />
+      <stop offset="1" stop-color="#D9E7FF" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="arrow" x1="278" y1="0" x2="390" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A89AF4" />
+      <stop offset="1" stop-color="#7565DE" />
+    </linearGradient>
+    <filter id="soft-shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="3" stdDeviation="7" flood-color="#6257A8" flood-opacity="0.18" />
+    </filter>
+  </defs>
+
+  <rect width="660" height="400" fill="#F8FAFF" />
+  <rect width="660" height="400" fill="url(#glow-left)" />
+  <rect width="660" height="400" fill="url(#glow-right)" />
+
+  <text x="330" y="58" fill="#22242C" font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif" font-size="27" font-weight="700" text-anchor="middle">FoxMeter</text>
+  <text x="330" y="84" fill="#737786" font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif" font-size="14" font-weight="500" text-anchor="middle">Drag FoxMeter into Applications</text>
+
+  <path d="M276 185C307 168 352 168 384 185" fill="none" stroke="url(#arrow)" stroke-width="4" stroke-linecap="round" filter="url(#soft-shadow)" />
+  <path d="M373 173L386 185L371 195" fill="none" stroke="#7565DE" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+
+  <rect x="277" y="308" width="106" height="28" rx="14" fill="#ECEAFC" />
+  <text x="330" y="327" fill="#6F63B7" font-family="-apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif" font-size="12" font-weight="600" text-anchor="middle">Apple Silicon</text>
+</svg>

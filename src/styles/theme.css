@@ -1,0 +1,62 @@
+.spin {
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .app-shell {
+    background: #11131a;
+  }
+
+  .interaction-rail {
+    background: #171824;
+  }
+
+  .light .app-shell {
+    background: #f8faff;
+  }
+
+  .light .interaction-rail {
+    background: #eef1ff;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .app-shell {
+    --hairline: rgba(255, 255, 255, 0.2);
+    background: #0c0e14;
+  }
+
+  .usage-ring__period,
+  .usage-metric__reset,
+  .dashboard-footer {
+    color: rgba(255, 255, 255, 0.78);
+  }
+
+  .light .app-shell {
+    --hairline: rgba(0, 0, 0, 0.22);
+    background: #ffffff;
+  }
+
+  .light .usage-ring__period,
+  .light .usage-metric__reset,
+  .light .dashboard-footer {
+    color: rgba(20, 21, 25, 0.76);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
