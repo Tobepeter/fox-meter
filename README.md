@@ -1,67 +1,29 @@
-# FoxMeter
+<div align="center">
+  <img src="docs/icon.png" width="128" height="128" alt="FoxMeter 图标" />
+  <h1>FoxMeter</h1>
+  <p><strong>把 Codex 剩余额度留在桌面上</strong></p>
+  <p>轻量、可置顶的 macOS 用量面板</p>
+</div>
 
-FoxMeter 是一个轻量的 macOS Codex 用量浮层，展示 5 小时与每周额度、重置时间、套餐和 Credits
+<p align="center">
+  <img src="docs/screenshot.png" width="640" alt="FoxMeter 首页，展示 Codex 5 小时与每周剩余额度" />
+</p>
 
-应用始终使用固定的 320×184 紧凑窗口，设置面板在同一窗口内替换额度内容
+## 专注真正重要的信息
 
-## 主要能力
+FoxMeter 将最值得关注的 **5 小时额度**与**每周额度**放进一个紧凑浮层，让剩余比例和重置时间始终清晰可见
 
-- 默认置顶并显示在所有桌面空间，设置会跨重启保存
-- 顶部标题栏和左侧栏空白区域可拖动，窗口位置会保存在本机
-- 刷新间隔可选 30 秒、1 分钟、2 分钟或 5 分钟
-- 关闭窗口时隐藏并暂停轮询，点击 Dock 恢复后立即刷新
-- 支持 `⌘R` 刷新、`⌘,` 打开设置、`Esc` 退出设置
-- 支持浅色、深色和 reduced-motion
+- **一眼看清**：两个额度周期并排展示，不让次要信息抢走注意力
+- **始终顺手**：支持窗口置顶、跨桌面显示，并记住上次位置
+- **安静运行**：自动刷新，关闭窗口后暂停轮询
+- **贴合系统**：支持跟随系统、浅色与深色三种外观
 
-## 开发
+## 只读，不打扰 Codex
 
-```bash
-pnpm install
-pnpm desktop:dev
-```
+FoxMeter 只读取本机已有的 Codex 登录状态来查询用量，**不会启动 Codex agent、不会发送对话，也不会改写登录凭据**
 
-`tauri dev` 运行裸调试可执行文件，macOS Dock 可能显示 `exec` 占位图标
+## 当前状态
 
-`pnpm desktop:dev` 支持前端 HMR，Rust 改动会触发重新编译和应用重启；debug 或 release `.app` 不会热更新，需要重新构建并打开
+FoxMeter 目前面向 **Apple Silicon Mac**，仍处于早期开发阶段。正式安装包发布后会在 GitHub Releases 提供
 
-开发态 Vite 使用 Tauri 模板默认的 `localhost:1420`，只服务本地 WebView 与 HMR
-
-检查真实应用名称和狐狸图标时，构建后手动打开 `.app`
-
-```bash
-pnpm desktop:build:debug
-pnpm desktop:open:debug
-```
-
-调试包位于 `src-tauri/target/debug/bundle/macos/FoxMeter.app`
-
-## 构建
-
-```bash
-pnpm desktop:build
-```
-
-构建同时产出：
-
-- `src-tauri/target/release/bundle/macos/FoxMeter.app`
-- `src-tauri/target/release/bundle/dmg/FoxMeter_0.1.0_aarch64.dmg`
-
-当前只构建 Apple Silicon 版本。本地构建只有 ad-hoc 签名，没有 Developer ID 签名或 notarization，不自动安装到 Applications，也不会自动打开
-
-## 数据与安全边界
-
-- 只读 `$CODEX_HOME/auth.json` 或 `~/.codex/auth.json`
-- 使用 access token 请求 Codex usage endpoint，不启动 Codex agent 进程
-- 不刷新 token、不写回凭据、不读取浏览器 Cookie
-- 本地缓存只包含用量快照，不包含 token
-- 缓存与偏好使用原子写入，异常中断时不暴露半写入 JSON
-- 请求失败时展示明确标记的 stale 缓存
-- 生产 WebView CSP 只允许本地资源与 Tauri IPC
-
-## 校验
-
-```bash
-pnpm check
-cargo test --manifest-path src-tauri/Cargo.toml
-cargo clippy --manifest-path src-tauri/Cargo.toml --all-targets -- -D warnings
-```
+源码构建与开发方式见 [开发说明](docs/development.md)
