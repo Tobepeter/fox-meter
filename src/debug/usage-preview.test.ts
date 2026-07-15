@@ -1,7 +1,18 @@
 import { describe, expect, it } from 'vitest'
+import { createUsageMock } from '@/debug/usage-mock'
 import { createPreviewSnapshot } from '@/debug/usage-preview'
 
 describe('usage preview states', () => {
+  it('creates single and double window mock responses', () => {
+    const single = createUsageMock('single')
+    const double = createUsageMock('double')
+
+    expect(single.limits.primary?.windowMinutes).toBe(10_080)
+    expect(single.limits.secondary).toBeUndefined()
+    expect(double.limits.primary?.remainingPercent).toBe(73)
+    expect(double.limits.secondary?.remainingPercent).toBe(42)
+  })
+
   it('creates an unauthenticated state without usage data', () => {
     const snapshot = createPreviewSnapshot('auth')
 
@@ -14,7 +25,7 @@ describe('usage preview states', () => {
     const snapshot = createPreviewSnapshot('offline')
 
     expect(snapshot.error?.code).toBe('network')
-    expect(snapshot.limits.fiveHour?.remainingPercent).toBe(73)
+    expect(snapshot.limits.primary?.remainingPercent).toBe(73)
     expect(snapshot.source).toBe('cache')
   })
 })

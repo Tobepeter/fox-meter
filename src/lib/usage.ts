@@ -1,5 +1,5 @@
 import { addDays, differenceInMinutes, format, isSameDay } from 'date-fns'
-import type { TimeDisplayMode, UsageError, UsageSnapshot } from '@/types/usage'
+import type { TimeDisplayMode, UsageError } from '@/types/usage'
 
 const maxRefreshDelay = 5 * 60_000
 
@@ -45,30 +45,21 @@ export function getUsageStatus(error: UsageError, stale: boolean) {
   }
 }
 
-export function createMockSnapshot(): UsageSnapshot {
-  const now = Date.now()
+export function formatWindowPeriod(windowMinutes: number) {
+  const hourMinutes = 60
+  const dayMinutes = 24 * hourMinutes
+  const fiveHourMinutes = 5 * hourMinutes
+  const weekMinutes = 7 * dayMinutes
 
-  return {
-    checkedAt: new Date().toISOString(),
-    source: 'codex-oauth',
-    stale: false,
-    account: { email: 'tobe@example.com', plan: 'plus' },
-    limits: {
-      fiveHour: {
-        usedPercent: 27,
-        remainingPercent: 73,
-        windowMinutes: 300,
-        resetsAt: Math.floor((now + 2.4 * 60 * 60 * 1000) / 1000),
-      },
-      weekly: {
-        usedPercent: 58,
-        remainingPercent: 42,
-        windowMinutes: 10080,
-        resetsAt: Math.floor((now + 3.8 * 24 * 60 * 60 * 1000) / 1000),
-      },
-    },
-    credits: { hasCredits: true, unlimited: false, balance: 14.8 },
+  if (windowMinutes === fiveHourMinutes) return '5小时'
+  if (windowMinutes === weekMinutes) return '每周'
+  if (windowMinutes >= dayMinutes && windowMinutes % dayMinutes === 0) {
+    return `${windowMinutes / dayMinutes}天`
   }
+  if (windowMinutes >= hourMinutes && windowMinutes % hourMinutes === 0) {
+    return `${windowMinutes / hourMinutes}小时`
+  }
+  return `${windowMinutes}分钟`
 }
 
 export function formatResetTime(timestamp: number, now: number, mode: TimeDisplayMode) {

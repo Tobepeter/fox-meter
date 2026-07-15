@@ -1,8 +1,8 @@
-import { createMockSnapshot } from '@/lib/usage'
+import { createUsageMock } from '@/debug/usage-mock'
 import type { UsageSnapshot } from '@/types/usage'
 
 export function createPreviewSnapshot(preview: string | null): UsageSnapshot {
-  const snapshot = createMockSnapshot()
+  const snapshot = createUsageMock()
 
   if (preview === 'auth') {
     return {

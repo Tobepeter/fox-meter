@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { listen } from '@tauri-apps/api/event'
+import { appConfig } from '@/config'
+import { createUsageMock, requestUsageMock, type UsageMockScenario } from '@/debug/usage-mock'
 import { createPreviewSnapshot } from '@/debug/usage-preview'
 import { getInvoke, isTauri } from '@/lib/platform'
-import { createMockSnapshot, getRefreshDelay } from '@/lib/usage'
+import { getRefreshDelay } from '@/lib/usage'
 import type { UsageSnapshot } from '@/types/usage'
 
+export const usageMockEnabled = import.meta.env.DEV && appConfig.mockMode
+
 function createBrowserSnapshot() {
-  if (!import.meta.env.DEV) return createMockSnapshot()
+  if (!import.meta.env.DEV) return createUsageMock()
 
   const preview = new URLSearchParams(window.location.search).get('preview')
   return createPreviewSnapshot(preview)
@@ -22,18 +26,29 @@ export function useUsage(options: { refreshInterval: number }) {
   const [refreshCycle, setRefreshCycle] = useState(0)
   const [appVisible, setAppVisible] = useState(true)
   const inFlight = useRef(false)
+  const requestIdRef = useRef(0)
+  const mockScenarioRef = useRef<UsageMockScenario>('double')
 
   const refresh = useCallback(async () => {
     if (inFlight.current) return
     inFlight.current = true
+    const requestId = ++requestIdRef.current
     setRefreshing(true)
 
     try {
-      const invoke = await getInvoke()
-      const next = invoke ? await invoke<UsageSnapshot>('refresh_usage') : createBrowserSnapshot()
+      const invoke = usageMockEnabled ? null : await getInvoke()
+      const next = usageMockEnabled
+        ? createUsageMock(mockScenarioRef.current)
+        : invoke
+          ? await invoke<UsageSnapshot>('refresh_usage')
+          : createBrowserSnapshot()
+      if (requestId !== requestIdRef.current) return
+
       setSnapshot(next)
       setFailureCount((current) => (next.error ? current + 1 : 0))
     } catch (error) {
+      if (requestId !== requestIdRef.current) return
+
       setFailureCount((current) => current + 1)
       setSnapshot((current) =>
         current
@@ -48,9 +63,34 @@ export function useUsage(options: { refreshInterval: number }) {
           : null,
       )
     } finally {
-      inFlight.current = false
-      setRefreshing(false)
-      setRefreshCycle((current) => current + 1)
+      if (requestId === requestIdRef.current) {
+        inFlight.current = false
+        setRefreshing(false)
+        setRefreshCycle((current) => current + 1)
+      }
+    }
+  }, [])
+
+  const loadMock = useCallback(async (scenario: UsageMockScenario) => {
+    if (!usageMockEnabled) return
+
+    const requestId = ++requestIdRef.current
+    mockScenarioRef.current = scenario
+    inFlight.current = true
+    setSnapshot(null)
+    setRefreshing(true)
+
+    try {
+      const next = await requestUsageMock(scenario)
+      if (requestId !== requestIdRef.current) return
+      setSnapshot(next)
+      setFailureCount(0)
+    } finally {
+      if (requestId === requestIdRef.current) {
+        inFlight.current = false
+        setRefreshing(false)
+        setRefreshCycle((current) => current + 1)
+      }
     }
   }, [])
 
@@ -58,7 +98,7 @@ export function useUsage(options: { refreshInterval: number }) {
     let cancelled = false
 
     async function initialize() {
-      const invoke = await getInvoke()
+      const invoke = usageMockEnabled ? null : await getInvoke()
       if (invoke) {
         try {
           const cached = await invoke<UsageSnapshot | null>('read_cached_usage')
@@ -131,5 +171,6 @@ export function useUsage(options: { refreshInterval: number }) {
     refreshing,
     now,
     refresh,
+    loadMock,
   }
 }

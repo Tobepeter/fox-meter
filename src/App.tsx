@@ -7,7 +7,7 @@ import { SettingsPanel } from '@/components/settings-panel'
 import { ToolButton } from '@/components/tool-button'
 import { UsageDashboard } from '@/components/usage-dashboard'
 import { usePreferences } from '@/hooks/use-preferences'
-import { useUsage } from '@/hooks/use-usage'
+import { usageMockEnabled, useUsage } from '@/hooks/use-usage'
 import { useWindowControls } from '@/hooks/use-window-controls'
 import { isTauri } from '@/lib/platform'
 import appIcon from './assets/app-icon.png'
@@ -17,7 +17,7 @@ import './styles/theme.css'
 export default function App() {
   const { setTheme } = useTheme()
   const { preferences, ready: preferencesReady, updatePreferences } = usePreferences()
-  const { snapshot, refreshing, now, refresh } = useUsage({
+  const { snapshot, refreshing, now, refresh, loadMock } = useUsage({
     refreshInterval: preferences.refreshInterval,
   })
   const { floating, settingsOpen, toggleFloating, toggleSettings, hideSettings, startWindowDrag } =
@@ -143,8 +143,19 @@ export default function App() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 6 }}
                   >
+                    {usageMockEnabled && (
+                      <div className="usage-mock-controls" aria-label="额度 Mock 场景">
+                        <button type="button" onClick={() => loadMock('single')}>
+                          加载 1 个
+                        </button>
+                        <button type="button" onClick={() => loadMock('double')}>
+                          加载 2 个
+                        </button>
+                      </div>
+                    )}
                     <UsageDashboard
                       snapshot={snapshot}
+                      loading={snapshot === null}
                       now={now}
                       timeDisplayMode={preferences.timeDisplayMode}
                     />

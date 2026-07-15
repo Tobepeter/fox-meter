@@ -12,7 +12,7 @@ export type UsageSnapshot = {
   source: 'codex-oauth' | 'cache' | 'none'
   stale: boolean
   account?: { email?: string; plan?: string }
-  limits: { fiveHour?: UsageWindow; weekly?: UsageWindow }
+  limits: { primary?: UsageWindow; secondary?: UsageWindow }
   credits?: { hasCredits: boolean; unlimited: boolean; balance?: number }
   error?: UsageError
 }

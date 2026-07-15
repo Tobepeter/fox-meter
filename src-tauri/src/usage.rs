@@ -121,8 +121,8 @@ fn snapshot_from_response(response: CodexUsageResponse, email: Option<String>) -
     let limits = response
         .rate_limit
         .map_or_else(UsageLimits::default, |limits| UsageLimits {
-            five_hour: limits.primary_window.map(window_snapshot),
-            weekly: limits.secondary_window.map(window_snapshot),
+            primary: limits.primary_window.map(window_snapshot),
+            secondary: limits.secondary_window.map(window_snapshot),
         });
     let account = if email.is_some() || response.plan_type.is_some() {
         Some(AccountSnapshot {
@@ -191,8 +191,8 @@ mod tests {
         .expect("fixture should parse");
 
         let snapshot = snapshot_from_response(response, Some("fox@example.com".into()));
-        assert_eq!(snapshot.limits.five_hour.unwrap().remaining_percent, 66.0);
-        assert_eq!(snapshot.limits.weekly.unwrap().remaining_percent, 18.5);
+        assert_eq!(snapshot.limits.primary.unwrap().remaining_percent, 66.0);
+        assert_eq!(snapshot.limits.secondary.unwrap().remaining_percent, 18.5);
         assert_eq!(snapshot.credits.unwrap().balance, Some(12.5));
         assert_eq!(snapshot.account.unwrap().plan.as_deref(), Some("plus"));
     }

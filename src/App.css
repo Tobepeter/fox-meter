@@ -215,16 +215,68 @@ button {
   min-height: 0;
 }
 
+.dashboard-stage {
+  position: relative;
+}
+
+.usage-mock-controls {
+  position: absolute;
+  z-index: 20;
+  top: -28px;
+  right: 0;
+  display: flex;
+  gap: 4px;
+  -webkit-app-region: no-drag;
+}
+
+.usage-mock-controls button {
+  height: 22px;
+  padding: 0 7px;
+  color: rgba(244, 244, 249, 0.74);
+  font-size: 10px;
+  line-height: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
+
+.usage-mock-controls button:hover {
+  color: #ffffff;
+  background: rgba(170, 156, 247, 0.16);
+  border-color: rgba(170, 156, 247, 0.28);
+}
+
 .dashboard-content {
   position: relative;
   flex-direction: column;
 }
 
 .usage-list {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: row;
   min-height: 0;
+}
+
+.usage-loading {
+  position: absolute;
+  display: grid;
+  inset: 0;
+  place-items: center;
+}
+
+.usage-loading__dots {
+  display: flex;
+  gap: 6px;
+}
+
+.usage-loading__dots > span {
+  width: 6px;
+  height: 6px;
+  background: var(--meter-normal);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(170, 156, 247, 0.22);
 }
 
 .usage-metric {
@@ -545,6 +597,18 @@ button {
   background: rgba(103, 85, 207, 0.2);
   border-color: rgba(103, 85, 207, 0.38);
   box-shadow: inset 0 0 0 1px rgba(103, 85, 207, 0.08);
+}
+
+.light .usage-mock-controls button {
+  color: rgba(35, 36, 42, 0.66);
+  background: rgba(35, 36, 42, 0.04);
+  border-color: rgba(35, 36, 42, 0.1);
+}
+
+.light .usage-mock-controls button:hover {
+  color: #3d318a;
+  background: rgba(103, 85, 207, 0.1);
+  border-color: rgba(103, 85, 207, 0.22);
 }
 
 .light .usage-ring {

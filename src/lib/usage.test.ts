@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createMockSnapshot, formatResetTime, getRefreshDelay, getUsageStatus } from '@/lib/usage'
+import { formatResetTime, formatWindowPeriod, getRefreshDelay, getUsageStatus } from '@/lib/usage'
 
 const now = 1_800_000_000_000
 const nowSeconds = now / 1000
@@ -13,12 +13,12 @@ describe('usage formatters', () => {
     expect(formatResetTime(nowSeconds + 70 * 60, now, 'exact')).toMatch(/^(今天|明天) \d{2}:\d{2}$/)
   })
 
-  it('creates a complete local preview snapshot', () => {
-    const snapshot = createMockSnapshot()
-
-    expect(snapshot.limits.fiveHour?.remainingPercent).toBe(73)
-    expect(snapshot.limits.weekly?.remainingPercent).toBe(42)
-    expect(snapshot.stale).toBe(false)
+  it('formats known and fallback usage windows', () => {
+    expect(formatWindowPeriod(300)).toBe('5小时')
+    expect(formatWindowPeriod(10_080)).toBe('每周')
+    expect(formatWindowPeriod(2_880)).toBe('2天')
+    expect(formatWindowPeriod(720)).toBe('12小时')
+    expect(formatWindowPeriod(90)).toBe('90分钟')
   })
 
   it('caps refresh backoff at five minutes', () => {

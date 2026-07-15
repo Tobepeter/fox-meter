@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 import { m } from 'motion/react'
 import { PolarAngleAxis, RadialBar, RadialBarChart } from 'recharts'
 import { ChartContainer, type ChartConfig } from '@/components/ui/chart'
-import { formatResetTime } from '@/lib/usage'
+import { formatResetTime, formatWindowPeriod } from '@/lib/usage'
 import type { TimeDisplayMode, UsageWindow } from '@/types/usage'
 
 const chartConfig = {
@@ -75,14 +75,22 @@ function getMeterColor(state: MeterState) {
 }
 
 export function UsageMetric(props: UsageMetricProps) {
-  const { period, window, now, timeDisplayMode } = props
+  const { window, now, timeDisplayMode } = props
+  const period = window ? formatWindowPeriod(window.windowMinutes) : '额度'
   const remaining = Math.round(window?.remainingPercent ?? 0)
   const resetText = window ? formatResetTime(window.resetsAt, now, timeDisplayMode) : '暂无数据'
   const state = getMeterState(remaining)
   const label = `${period}剩余`
 
   return (
-    <m.section layout className={`usage-metric${window ? '' : ' usage-metric--empty'}`}>
+    <m.section
+      layout
+      className={`usage-metric${window ? '' : ' usage-metric--empty'}`}
+      initial={{ opacity: 0, scale: 0.94 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.94 }}
+      transition={{ duration: 0.28, ease: [0.33, 1, 0.68, 1] }}
+    >
       <UsageRing
         value={remaining}
         state={state}
@@ -106,7 +114,6 @@ type UsageRingProps = {
 }
 
 type UsageMetricProps = {
-  period: string
   window?: UsageWindow
   now: number
   timeDisplayMode: TimeDisplayMode

@@ -22,8 +22,8 @@ pub struct AccountSnapshot {
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UsageLimits {
-    pub five_hour: Option<WindowSnapshot>,
-    pub weekly: Option<WindowSnapshot>,
+    pub primary: Option<WindowSnapshot>,
+    pub secondary: Option<WindowSnapshot>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
