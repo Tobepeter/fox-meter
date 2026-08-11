@@ -3,6 +3,24 @@ import type { UsageSnapshot } from '@/types/usage'
 
 export function createPreviewSnapshot(preview: string | null): UsageSnapshot {
   const snapshot = createUsageMock()
+  const miniRemaining = preview?.startsWith('mini-') ? Number(preview.slice(5)) : Number.NaN
+
+  if (Number.isFinite(miniRemaining) && miniRemaining >= 0 && miniRemaining <= 100) {
+    const weekly = snapshot.limits.secondary
+    if (weekly) {
+      return {
+        ...snapshot,
+        limits: {
+          ...snapshot.limits,
+          secondary: {
+            ...weekly,
+            usedPercent: 100 - miniRemaining,
+            remainingPercent: miniRemaining,
+          },
+        },
+      }
+    }
+  }
 
   if (preview === 'auth') {
     return {

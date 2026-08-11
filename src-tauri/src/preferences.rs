@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 
+use chrono::{DateTime, Local, TimeDelta};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
 
@@ -24,11 +25,27 @@ pub enum ThemeMode {
     Dark,
 }
 
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum FloatingPausePreset {
+    TenMinutes,
+    OneHour,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FloatingPause {
+    pub preset: FloatingPausePreset,
+    pub resumes_at: i64,
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Preferences {
     #[serde(default = "default_floating")]
     pub floating: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub floating_pause: Option<FloatingPause>,
     #[serde(default = "default_refresh_interval")]
     pub refresh_interval: u64,
     #[serde(default)]
@@ -49,6 +66,7 @@ impl Default for Preferences {
     fn default() -> Self {
         Self {
             floating: default_floating(),
+            floating_pause: None,
             refresh_interval: default_refresh_interval(),
             time_display_mode: TimeDisplayMode::default(),
             theme: ThemeMode::default(),
@@ -72,7 +90,28 @@ impl Preferences {
         if !REFRESH_INTERVALS.contains(&self.refresh_interval) {
             self.refresh_interval = default_refresh_interval();
         }
+        if self.floating {
+            self.floating_pause = None;
+        }
         self
+    }
+}
+
+impl FloatingPause {
+    pub fn from_preset(preset: FloatingPausePreset) -> Result<Self, String> {
+        Self::from_time(preset, Local::now())
+    }
+
+    fn from_time(preset: FloatingPausePreset, now: DateTime<Local>) -> Result<Self, String> {
+        let resumes_at = match preset {
+            FloatingPausePreset::TenMinutes => now + TimeDelta::minutes(10),
+            FloatingPausePreset::OneHour => now + TimeDelta::hours(1),
+        };
+
+        Ok(Self {
+            preset,
+            resumes_at: resumes_at.timestamp_millis(),
+        })
     }
 }
 
@@ -106,13 +145,18 @@ const fn default_refresh_interval() -> u64 {
 
 #[cfg(test)]
 mod tests {
-    use super::{Preferences, ThemeMode, TimeDisplayMode, UiPreferences};
+    use chrono::{Local, TimeZone};
+
+    use super::{
+        FloatingPause, FloatingPausePreset, Preferences, ThemeMode, TimeDisplayMode, UiPreferences,
+    };
 
     #[test]
     fn fills_defaults_for_older_preference_files() {
         let preferences: Preferences = serde_json::from_str("{}").expect("fixture should parse");
 
         assert!(preferences.floating);
+        assert_eq!(preferences.floating_pause, None);
         assert_eq!(preferences.refresh_interval, 60_000);
         assert_eq!(preferences.time_display_mode, TimeDisplayMode::Remaining);
         assert_eq!(preferences.theme, ThemeMode::System);
@@ -135,6 +179,13 @@ mod tests {
     fn keeps_floating_when_ui_preferences_change() {
         let mut preferences = Preferences {
             floating: false,
+            floating_pause: Some(
+                FloatingPause::from_time(
+                    FloatingPausePreset::OneHour,
+                    Local.with_ymd_and_hms(2026, 8, 6, 12, 0, 0).unwrap(),
+                )
+                .unwrap(),
+            ),
             ..Preferences::default()
         };
 
@@ -147,7 +198,24 @@ mod tests {
             .expect("supported preferences should update");
 
         assert!(!preferences.floating);
+        assert_eq!(
+            preferences
+                .floating_pause
+                .as_ref()
+                .map(|pause| pause.preset),
+            Some(FloatingPausePreset::OneHour)
+        );
         assert_eq!(preferences.refresh_interval, 120_000);
         assert_eq!(preferences.theme, ThemeMode::Light);
+    }
+
+    #[test]
+    fn calculates_pause_resume_times() {
+        let now = Local.with_ymd_and_hms(2026, 8, 6, 23, 20, 0).unwrap();
+        let ten_minutes = FloatingPause::from_time(FloatingPausePreset::TenMinutes, now).unwrap();
+        let one_hour = FloatingPause::from_time(FloatingPausePreset::OneHour, now).unwrap();
+
+        assert_eq!(ten_minutes.resumes_at, now.timestamp_millis() + 10 * 60_000);
+        assert_eq!(one_hour.resumes_at, now.timestamp_millis() + 60 * 60_000);
     }
 }

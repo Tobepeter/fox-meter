@@ -1,7 +1,15 @@
 import { addDays, differenceInMinutes, format, isSameDay } from 'date-fns'
-import type { TimeDisplayMode, UsageError } from '@/types/usage'
+import type { TimeDisplayMode, UsageError, UsageSnapshot, UsageWindow } from '@/types/usage'
 
 const maxRefreshDelay = 5 * 60_000
+const weekMinutes = 7 * 24 * 60
+
+export function getMiniUsageWindow(snapshot: UsageSnapshot | null): UsageWindow | undefined {
+  const windows = [snapshot?.limits.primary, snapshot?.limits.secondary].filter(
+    (window): window is UsageWindow => Boolean(window),
+  )
+  return windows.find((window) => window.windowMinutes === weekMinutes) ?? windows[0]
+}
 
 export function getRefreshDelay(interval: number, failures: number) {
   return Math.min(interval * 2 ** failures, maxRefreshDelay)
@@ -49,8 +57,6 @@ export function formatWindowPeriod(windowMinutes: number) {
   const hourMinutes = 60
   const dayMinutes = 24 * hourMinutes
   const fiveHourMinutes = 5 * hourMinutes
-  const weekMinutes = 7 * dayMinutes
-
   if (windowMinutes === fiveHourMinutes) return '5小时'
   if (windowMinutes === weekMinutes) return '每周'
   if (windowMinutes >= dayMinutes && windowMinutes % dayMinutes === 0) {

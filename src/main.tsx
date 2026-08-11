@@ -8,7 +8,7 @@ import './index.css'
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <ThemeProvider>
-      <TooltipProvider delayDuration={350}>
+      <TooltipProvider delayDuration={600} skipDelayDuration={0}>
         <App />
       </TooltipProvider>
     </ThemeProvider>

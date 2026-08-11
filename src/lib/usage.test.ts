@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { formatResetTime, formatWindowPeriod, getRefreshDelay, getUsageStatus } from '@/lib/usage'
+import {
+  formatResetTime,
+  formatWindowPeriod,
+  getMiniUsageWindow,
+  getRefreshDelay,
+  getUsageStatus,
+} from '@/lib/usage'
+import type { UsageSnapshot, UsageWindow } from '@/types/usage'
 
 const now = 1_800_000_000_000
 const nowSeconds = now / 1000
@@ -21,6 +28,18 @@ describe('usage formatters', () => {
     expect(formatWindowPeriod(90)).toBe('90分钟')
   })
 
+  it('prefers the weekly window for Mini mode', () => {
+    const short = usageWindow(300, 73)
+    const weekly = usageWindow(10_080, 42)
+    const snapshot = {
+      limits: { primary: short, secondary: weekly },
+    } as UsageSnapshot
+
+    expect(getMiniUsageWindow(snapshot)).toBe(weekly)
+    expect(getMiniUsageWindow({ ...snapshot, limits: { primary: short } })).toBe(short)
+    expect(getMiniUsageWindow(null)).toBeUndefined()
+  })
+
   it('caps refresh backoff at five minutes', () => {
     expect(getRefreshDelay(60_000, 0)).toBe(60_000)
     expect(getRefreshDelay(60_000, 2)).toBe(240_000)
@@ -34,3 +53,12 @@ describe('usage formatters', () => {
     )
   })
 })
+
+function usageWindow(windowMinutes: number, remainingPercent: number): UsageWindow {
+  return {
+    usedPercent: 100 - remainingPercent,
+    remainingPercent,
+    windowMinutes,
+    resetsAt: nowSeconds,
+  }
+}
