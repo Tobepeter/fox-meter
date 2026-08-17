@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, type PointerEvent } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from 'react'
 import { Maximize2 } from 'lucide-react'
 import { getMiniValueFontSize, miniValueMaxSize } from '@/lib/window'
 
@@ -9,7 +9,18 @@ export function MiniWindow(props: MiniWindowProps) {
   const pointerStartRef = useRef<PointerStart | null>(null)
   const valueRef = useRef<HTMLSpanElement>(null)
   const draggedRef = useRef(false)
+  const hoverEnabledRef = useRef(true)
+  const [showExpand, setShowExpand] = useState(false)
   const value = remaining ?? '—'
+
+  useEffect(() => {
+    const hideExpand = () => {
+      hoverEnabledRef.current = true
+      setShowExpand(false)
+    }
+    window.addEventListener('blur', hideExpand)
+    return () => window.removeEventListener('blur', hideExpand)
+  }, [])
 
   useLayoutEffect(() => {
     const element = valueRef.current
@@ -42,6 +53,8 @@ export function MiniWindow(props: MiniWindowProps) {
   function handlePointerDown(event: PointerEvent<HTMLButtonElement>) {
     if (event.button !== 0 || transitioning) return
 
+    setShowExpand(false)
+    hoverEnabledRef.current = true
     draggedRef.current = false
     pointerStartRef.current = { x: event.clientX, y: event.clientY }
     event.currentTarget.setPointerCapture(event.pointerId)
@@ -55,6 +68,8 @@ export function MiniWindow(props: MiniWindowProps) {
     if (distance < dragThreshold) return
 
     draggedRef.current = true
+    hoverEnabledRef.current = false
+    setShowExpand(false)
     pointerStartRef.current = null
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId)
@@ -85,11 +100,24 @@ export function MiniWindow(props: MiniWindowProps) {
       <button
         type="button"
         className="mini-window-button"
+        data-show-expand={showExpand}
         aria-label={`${periodLabel}额度剩余 ${remaining === null ? '暂无数据' : `${remaining}%`}，点击展开`}
         aria-busy={transitioning}
         onClick={handleClick}
-        onPointerCancel={resetPointer}
+        onBlur={() => setShowExpand(false)}
+        onLostPointerCapture={() => setShowExpand(false)}
+        onPointerCancel={() => {
+          setShowExpand(false)
+          resetPointer()
+        }}
         onPointerDown={handlePointerDown}
+        onPointerEnter={() => {
+          if (!transitioning && hoverEnabledRef.current) setShowExpand(true)
+        }}
+        onPointerLeave={() => {
+          hoverEnabledRef.current = true
+          setShowExpand(false)
+        }}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
       >
