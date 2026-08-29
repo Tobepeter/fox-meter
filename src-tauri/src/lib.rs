@@ -232,6 +232,24 @@ async fn animate_window_size(
 }
 
 #[cfg(target_os = "macos")]
+fn resize_origin_within_screen(
+    current_origin: f64,
+    current_size: f64,
+    target_size: f64,
+    visible_origin: f64,
+    visible_size: f64,
+) -> f64 {
+    let current_range = visible_size - current_size;
+    let target_range = visible_size - target_size;
+    if current_range <= 0.0 || target_range <= 0.0 {
+        return visible_origin + target_range.max(0.0) / 2.0;
+    }
+
+    let position = ((current_origin - visible_origin) / current_range).clamp(0.0, 1.0);
+    visible_origin + position * target_range
+}
+
+#[cfg(target_os = "macos")]
 fn animate_window_size_blocking(
     window: &WebviewWindow,
     target_width: f64,
@@ -251,8 +269,25 @@ fn animate_window_size_blocking(
             let current_frame = ns_window.frame();
             let mut target_frame = current_frame;
 
-            // AppKit 以左下角为原点，补偿 y 以固定窗口左上角
-            target_frame.origin.y += current_frame.size.height - target_height;
+            if let Some(screen) = ns_window.screen() {
+                let visible_frame = screen.visibleFrame();
+                target_frame.origin.x = resize_origin_within_screen(
+                    current_frame.origin.x,
+                    current_frame.size.width,
+                    target_width,
+                    visible_frame.origin.x,
+                    visible_frame.size.width,
+                );
+                target_frame.origin.y = resize_origin_within_screen(
+                    current_frame.origin.y,
+                    current_frame.size.height,
+                    target_height,
+                    visible_frame.origin.y,
+                    visible_frame.size.height,
+                );
+            } else {
+                target_frame.origin.y += current_frame.size.height - target_height;
+            }
             target_frame.size.width = target_width;
             target_frame.size.height = target_height;
 
@@ -279,6 +314,39 @@ fn animate_window_size_blocking(
     completed_rx
         .recv_timeout(Duration::from_secs(3))
         .map_err(|error| format!("Native window animation failed: {error}"))
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod window_resize_tests {
+    use super::resize_origin_within_screen;
+
+    #[test]
+    fn preserves_left_and_right_edges() {
+        assert_eq!(
+            resize_origin_within_screen(0.0, 52.0, 320.0, 0.0, 1_440.0),
+            0.0
+        );
+        assert_eq!(
+            resize_origin_within_screen(1_388.0, 52.0, 320.0, 0.0, 1_440.0),
+            1_120.0
+        );
+    }
+
+    #[test]
+    fn preserves_relative_position_on_offset_screen() {
+        assert_eq!(
+            resize_origin_within_screen(-746.0, 52.0, 320.0, -1_440.0, 1_440.0),
+            -880.0
+        );
+    }
+
+    #[test]
+    fn clamps_partially_offscreen_window() {
+        assert_eq!(
+            resize_origin_within_screen(1_420.0, 52.0, 320.0, 0.0, 1_440.0),
+            1_120.0
+        );
+    }
 }
 
 #[cfg(not(target_os = "macos"))]
